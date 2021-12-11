@@ -82,7 +82,7 @@ def export_df(df1, df2):
     write_path = input("Enter location for output xlsx file: ")
     write = pd.ExcelWriter(write_path, engine='xlsxwriter')
     df1.to_excel(write, "Complete")
-    df2.to_excel(write, "Removed First Specimen")
+    df2.to_excel(write, "First Specimen Only")
     write.save()
 
 
