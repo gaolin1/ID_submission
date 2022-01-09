@@ -5,33 +5,49 @@ import msoffcrypto
 import io
 import pandas as pd
 import xlsxwriter
+import streamlit as st
+import os
+import streamlit.bootstrap
+from streamlit import config as _config
+import sys
+from streamlit import cli as stcli
 
 def main():
-    df = import_combined()
-    df_complete = pivot(df)
-    df_removed = remove_first_specimen(df_complete)
-    export_df(df, df_removed)
+    #df = import_combined()
+    #df_complete = pivot(df)
+    #df_removed = remove_first_specimen(df, df_complete)
+    #export_df(df, df_removed)
+    sys.argv = ['streamlit', 'run', 'sub.py']
+    sys.exit(stcli.main())
 
+def import_df():
+    df = st.file_uploader("Upload Epic export", type=["xlsx"])
+    try:
+        df = pd.read_excel(df)
+        df["Order"] = 1
+        return df
+    except ValueError:
+        pass
 
-def remove_first_specimen(df_complete):
-    #print(df_complete)
+def remove_first_specimen(df, df_complete):
     df_staphyl = df_complete[df_complete["Organism"].str.contains("Staphylococcus aureus", na=False)]
     df_staphyl_sorted = df_staphyl.sort_values(by="Received")
     df_staphyl_removed = df_staphyl_sorted.drop_duplicates(subset=["Patient Name"])
-    #print(df_staphyl_removed)
     df_entero = df_complete[df_complete["Organism"].str.contains("Enterococcus", na=False)]
-    #print(df_entero)
     df_entero = df_entero[~df_entero["Organism"].str.contains("gallinarum", na=False)]
-    #print(df_entero)
     df_entero_removed = df_entero[~df_entero["Organism"].str.contains("casseliflavus", na=False)]
     df_entero_sorted = df_entero_removed.sort_values(by="Received")
     df_entero_ready = df_entero_sorted.drop_duplicates(subset="Patient Name")
-    #print(df_entero_removed)
     df_removed = df_staphyl_removed.append(df_entero_ready)
-    #df_removed = df_removed.sort_values(by=["Received", "Organism"])
-    #df_removed = df_removed.drop_duplicates(subset=["Patient Name", "Organism"])
-    #print(df_removed)
-    return df_removed
+    #use the specimen ID of filtered df and back finds the specimen ID and organism
+    gp_list = df_removed["Specimen ID"].tolist()
+    organism_list = df_removed["Organism"].tolist()
+    df = df.set_index("Specimen ID")
+    df = df.loc[gp_list]
+    df = df.reset_index()
+    df = df.set_index("Organism")
+    df = df.loc[organism_list]
+    return df
 
 
 def pivot(df):
@@ -79,6 +95,14 @@ def import_combined():
     #print(df)
     return df
 
+def import_df_web():
+    df = st.file_uploader("Upload Epic export", type=["xlsx"])
+    try:
+        df = pd.read_excel(df)
+        df["Order"] = 1
+        return df
+    except ValueError:
+        pass
 
 def import_df():
     decrypted = io.BytesIO()
