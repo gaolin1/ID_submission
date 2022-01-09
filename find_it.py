@@ -13,12 +13,18 @@ import sys
 from streamlit import cli as stcli
 
 def main():
-    #df = import_combined()
-    #df_complete = pivot(df)
-    #df_removed = remove_first_specimen(df, df_complete)
-    #export_df(df, df_removed)
-    sys.argv = ['streamlit', 'run', 'sub.py']
-    sys.exit(stcli.main())
+    df = import_combined()
+    df_complete = pivot(df)
+    df_removed = remove_first_specimen(df, df_complete)
+    export_df(df, df_removed)
+    launch_input = input("Launch dashboard app? (Y/N): ")
+    while launch_input not in ("Y", "N"):
+        launch_input = input("Please enter either Y or N: ")
+    if launch_input == "Y":
+        sys.argv = ['streamlit', 'run', 'sub.py']
+        sys.exit(stcli.main())
+    else:
+        quit()
 
 def import_df():
     df = st.file_uploader("Upload Epic export", type=["xlsx"])
@@ -49,7 +55,6 @@ def remove_first_specimen(df, df_complete):
     df = df.loc[organism_list]
     return df
 
-
 def pivot(df):
     df = df.pivot_table(index=("Patient Name", "Organism", "Specimen ID", "Specimen Type", "MRN", "Received"), 
                         columns="Antibiotic", 
@@ -63,12 +68,10 @@ def pivot(df):
     #print(df)
     return df
 
-
 def find_last_specimen(df):
     df["duplicate"] = df.duplicates(subset=["MRN", "Organism"])
     print(df)
     return df
-
 
 def sort_by_timestamp(df):
     df = df.sort_values("Received")
@@ -94,15 +97,6 @@ def import_combined():
     df.sort_values(by=["Received"], inplace=True)
     #print(df)
     return df
-
-def import_df_web():
-    df = st.file_uploader("Upload Epic export", type=["xlsx"])
-    try:
-        df = pd.read_excel(df)
-        df["Order"] = 1
-        return df
-    except ValueError:
-        pass
 
 def import_df():
     decrypted = io.BytesIO()
