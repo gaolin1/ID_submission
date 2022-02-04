@@ -23,4 +23,7 @@ to run the script, either
 * Launch dashboard visualization app
   * To launch visualization page, enter Y
   * <img width="754" alt="image" src="https://user-images.githubusercontent.com/28236780/152464782-17f28c6e-2a95-4f47-bceb-d97f3dc72532.png">
-  * 
+  * Click **Browse file** to open file explorer and choose the output processed file
+  * Then select either DDD or DOT
+  * Select location, department or both for later summarization table and graphs
+  * <img width="760" alt="image" src="https://user-images.githubusercontent.com/28236780/152464961-1a7e9115-d332-424f-b3e0-611b4d5aa5f6.png">
