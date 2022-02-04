@@ -5,6 +5,6 @@
 2. [msoffcypto](https://github.com/nolze/msoffcrypto-tool) (command: `pip install msoffcrypto-tool`)
 3. [streamlit](https://streamlit.io) (command: `pip install streamlit`)
 
-## This script has two function options
+### This script has two function options
 1. Process Epic output file
 2. Launch dashboard visualization app
