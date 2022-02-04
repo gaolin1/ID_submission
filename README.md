@@ -1,4 +1,10 @@
+==Requirements==
+Python 3 (tested on versions 3.9 and 3.10 on mac/windows)
+Required packages:
+1. pandas, link https://pandas.pydata.org/docs/getting_started/install.html (command: pip install pandas)
+2. msoffcrypto link https://github.com/nolze/msoffcrypto-tool (command: pip install msoffcrypto-tool)
+3. streamlit link https://streamlit.io (command: pip install streamlit)
+
 ## This script has two main options
 1. Process Epic Output 
-<img width="490" alt="image" src="https://user-images.githubusercontent.com/28236780/152458965-f14150e1-0eb1-4e0a-951f-aa3fce4229d8.png">
 2. Launch dashboard visualization app
