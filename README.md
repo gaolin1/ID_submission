@@ -29,3 +29,10 @@ to run the script, either
   * <img width="760" alt="image" src="https://user-images.githubusercontent.com/28236780/152464961-1a7e9115-d332-424f-b3e0-611b4d5aa5f6.png">
   * Select grouper of interested.
   * Then select level of data, list of departments will automatically filter based on locations selected.
+  * <img width="733" alt="image" src="https://user-images.githubusercontent.com/28236780/152465697-d0c34f2a-29ae-403e-968c-34bccc0e65f8.png">
+  * Either location or department data summary table will display
+  * <img width="856" alt="image" src="https://user-images.githubusercontent.com/28236780/152465910-5e35a82c-94e2-422c-8b9e-85a5086b11b7.png">
+  * Location or department line graph will also display
+  * **NOTE**red dashed line are overall averages
+
+to stop the program, use "control + c" in terminal to stop the program
