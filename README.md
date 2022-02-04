@@ -6,9 +6,13 @@
 3. [streamlit](https://streamlit.io) (command: `pip install streamlit`)
 
 
-**to run the script, use `python3 asp_visual.py`**
+to run the script, either enter `python3 asp_visual.py` in terminal (mac) or cmd (windows) or use right click on the asp_visual.py file and launch with **python launcher** 
 
 
 ### This script has two function options
 1. Process Epic output file
+<img width="498" alt="image" src="https://user-images.githubusercontent.com/28236780/152461702-25159aea-4965-4984-8eed-b23541fd6ac3.png">
+- To process Epic exported report, enter Y
+- Then select either the exported report are DDD or DOT
+- Depending on the exported report, select either to process location, department or both location and department reports
 2. Launch dashboard visualization app
