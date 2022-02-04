@@ -18,4 +18,5 @@ to run the script, either
 - To process Epic exported report, enter Y
 - Then select either the exported report are DDD or DOT
 - Depending on the exported report, select either to process location, department or both location and department reports
+
 2. Launch dashboard visualization app
