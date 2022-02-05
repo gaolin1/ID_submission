@@ -35,6 +35,6 @@ to run the script, either
   * Location or department data summary tables will display.
   * <img width="856" alt="image" src="https://user-images.githubusercontent.com/28236780/152465910-5e35a82c-94e2-422c-8b9e-85a5086b11b7.png">
   * Location or department line graphs will also display.
-  * **NOTE** red dashed line are overall averages.
+  * **NOTE** red dashed line indicates overall averages of the selected data.
 
 to stop the program, use "control + c" in terminal to stop the program
