@@ -5,12 +5,12 @@
 2. [msoffcypto](https://github.com/nolze/msoffcrypto-tool) (command: `pip install msoffcrypto-tool`)
 3. [streamlit](https://streamlit.io) (command: `pip install streamlit`)
 4. [altair](https://altair-viz.github.io) (command: `pip install altair`)
-
+---
 
 to run the script, either 
 1. enter `python3 asp_visual.py` in terminal (mac) or cmd (windows)
 2. use right click on the asp_visual.py file and launch with **python launcher** 
-
+---
 
 ### This script has two function options
 * Process Epic exported file
