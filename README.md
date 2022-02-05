@@ -14,7 +14,7 @@ to run the script, either
 
 ### This script has two function options
 * Process Epic exported file
-  * <img width="493" alt="image" src="https://user-images.githubusercontent.com/28236780/152463994-bacdf740-2d2c-4055-b615-ef46ac540e41.png">
+> <img width="493" alt="image" src="https://user-images.githubusercontent.com/28236780/152463994-bacdf740-2d2c-4055-b615-ef46ac540e41.png">
   * To process Epic exported report, enter Y.
   * Then select either the exported report are DDD or DOT.
   * Depending on the exported report, select either to process location, department or both location and department reports (1 or 2 or 3).
