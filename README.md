@@ -13,13 +13,15 @@ to run the script, either
 ---
 
 ### This script has two function options
-* Process Epic exported file
 > <img width="493" alt="image" src="https://user-images.githubusercontent.com/28236780/152463994-bacdf740-2d2c-4055-b615-ef46ac540e41.png">
+* Process Epic exported file
   * To process Epic exported report, enter Y.
   * Then select either the exported report are DDD or DOT.
   * Depending on the exported report, select either to process location, department or both location and department reports (1 or 2 or 3).
   * Enter path to exported file, then enter password.
   * Finally, enter path to processed output file with extension (xlsx) (e.g. to export within the same directory, simply enter the file name (sample.xlsx)).
+---
+
 * Launch dashboard visualization app
   * To launch visualization page, enter Y.
   * <img width="754" alt="image" src="https://user-images.githubusercontent.com/28236780/152464782-17f28c6e-2a95-4f47-bceb-d97f3dc72532.png">
