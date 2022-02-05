@@ -19,7 +19,9 @@ to run the script, either
   * Then select either the exported report are DDD or DOT.
   * Depending on the exported report, select either to process location, department or both location and department reports (1 or 2 or 3).
   * Enter path to exported file, then enter password.
-  * Finally, enter path to processed output file with extension (xlsx) (e.g. to export within the same directory, simply enter the file name (sample.xlsx)).
+  * Finally, enter file path for the processed file or file name directly to export on the same folder (with extension (xlsx)): 
+    * example: 'output file name' *(to export on the same folder of the script)*
+    * example: /Users/'User Name'/Downloads/'output file name' *(to export to an exact folder)*
 ---
 
 * Launch dashboard visualization app
