@@ -17,6 +17,7 @@ to run the script, either
 * Process Epic exported file
   * To process Epic exported report, enter Y.
   * Then select either the exported report are DDD or DOT.
+    * *sample file ddd_feb_2.xlsx* 
   * Depending on the exported report, select either to process location, department or both location and department reports (1 or 2 or 3).
   * Enter path to exported file, then enter password.
   * Finally, enter file path for the processed file or file name directly to export on the same folder (with extension (xlsx)): 
