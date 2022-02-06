@@ -43,7 +43,7 @@ def main():
     while launch_input not in ("Y", "N"):
         launch_input = input("Please enter either Y or N: ")
     if launch_input == "Y":
-        sys.argv = ['streamlit', 'run', 'dot_visual_st.py']
+        sys.argv = ['streamlit', 'run', 'asp_visual_st.py']
         sys.exit(stcli.main())
     else:
         quit()
