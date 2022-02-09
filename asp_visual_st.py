@@ -1,5 +1,6 @@
 from typing import Container
 import pandas as pd
+from pandas.core import frame
 from pandas.io import excel
 import streamlit as st
 import altair as alt
@@ -34,23 +35,36 @@ def prepare_loc(df, drug_list, loc_list):
     df_drug_loc = df_drug_loc.loc[loc_list]
     return df_drug_loc
 
-def make_chart(data, dep_or_loc, ddd_or_dot, type):
+def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total):
     data = data.reset_index()
     value_type = ddd_or_dot + " " + dep_or_loc + " Per 1000 Patients"
     base = alt.Chart(data).properties(height=450,width=800)
+    highlight = alt.selection(type='single', on='mouseover', fields=['symbol'], nearest=True)
     chart = (
         base.mark_line(opacity=0.4)
         .encode(
             x=alt.X("month(MONTH_BEGIN_DT):T", title = "month"),
             y=alt.Y(value_type + ":Q",stack=None, aggregate="sum", title = ddd_or_dot + " per 1000 patient days "),
-            color=type+":N"
+            color=type+":N",
         )
         .interactive()
         )
-    rule = base.mark_rule(color='red', opacity=0.8, strokeDash=[1,1]).encode(
-        y='average(' + value_type + '):Q'
+    total = (
+        alt.Chart(df_total).properties(height=450,width=800).mark_line(color='yellow', opacity=1, strokeDash=[0.2,4])
+        .encode(
+            x=alt.X("month(MONTH_BEGIN_DT):T", title = "month"),
+            y=alt.Y(value_type + ":Q"),
         )
-    chart = chart + rule
+    )
+
+    #take out for now
+    #rule = base.mark_rule(color='red', opacity=0.8, strokeDash=[1,1]).transform_window(
+    #    cumulative= 'sum(' + value_type + ')',
+    #).encode(
+    #    y='cumulative:Q',
+    #    x=alt.X("month(MONTH_BEGIN_DT):T", title = "month"),
+    #    )
+    chart = chart + total
     return chart
 
 def prepare_df(df):
@@ -97,12 +111,21 @@ def grab_drug_both(df, df2, type):
     df_loc = prepare_df(df_loc)
     df_loc_dep, dep_list = checkbox(df_loc, drug_selected, "DEPARTMENT_NAME")
     df_loc = prepare_loc(df2, drug_selected, loc_list)
-    dep_chart = make_chart(df_loc_dep, "Department", type, "DEPARTMENT_NAME")
-    loc_chart = make_chart(df_loc, "Location", type, "LOC_NAME")
+    df_loc_total = get_total(df_loc, "Location", type)
+    df_dep_total = get_total(df_loc_dep, "Department", type)
+    dep_chart = make_chart(df_loc_dep, "Department", type, "DEPARTMENT_NAME", df_dep_total)
+    loc_chart = make_chart(df_loc, "Location", type, "LOC_NAME", df_loc_total)
     show_df(df_loc)
     show_df(df_loc_dep)
+    #show_df(df_loc_total)
+    #show_df(df_dep_total)
     st.altair_chart(loc_chart, use_container_width=True)
     st.altair_chart(dep_chart, use_container_width=True)
+
+def get_total(df, dep_or_loc, ddd_or_dot):
+    value = ddd_or_dot + " " + dep_or_loc + " Per 1000 Patients"
+    df = df.groupby("MONTH_BEGIN_DT", as_index=False)[value].sum()
+    return df
 
 def grab_drug_one(df, ddd_or_dot, type):
     df = df.set_index("GROUPER_NAME")
@@ -121,13 +144,15 @@ def grab_drug_one(df, ddd_or_dot, type):
     if "Location" in type:
         df_loc, loc_list = checkbox(df, drug_selected, "LOC_NAME")
         df_loc = prepare_df(df_loc)
-        loc_chart = make_chart(df_loc, "Location", ddd_or_dot, "LOC_NAME")
+        df_loc_total = get_total(df_loc, "Location", ddd_or_dot)
+        loc_chart = make_chart(df_loc, "Location", ddd_or_dot, "LOC_NAME", df_loc_total)
         show_df(df_loc)
         st.altair_chart(loc_chart, use_container_width=True)
     else:
         df_dep, dep_list = checkbox(df, drug_selected, "DEPARTMENT_NAME")
         df_dep = prepare_df(df_dep)
-        dep_chart = make_chart(df_dep, "Department", ddd_or_dot, "DEPARTMENT_NAME")
+        df_dep_total = get_total(df_dep, "Department", ddd_or_dot)
+        dep_chart = make_chart(df_dep, "Department", ddd_or_dot, "DEPARTMENT_NAME", df_dep_total)
         show_df(df_dep)
         st.altair_chart(dep_chart, use_container_width=True)
 
