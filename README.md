@@ -36,8 +36,8 @@ to run the script, either
   * Then select level of data, list of departments will automatically filter based on locations selected.
   * <img width="733" alt="image" src="https://user-images.githubusercontent.com/28236780/152465697-d0c34f2a-29ae-403e-968c-34bccc0e65f8.png">
   * Location or department data summary tables will display.
-  * <img width="856" alt="image" src="https://user-images.githubusercontent.com/28236780/152465910-5e35a82c-94e2-422c-8b9e-85a5086b11b7.png">
+  * <img width="869" alt="image" src="https://user-images.githubusercontent.com/28236780/153302590-da92432d-0df8-4a26-b060-7e7dff74e0ad.png">
   * Location or department line graphs will also display.
-  * **NOTE** red dashed line indicates overall averages of the selected data.
+  * **NOTE** yellow dashed line indicates sum of all selected data.
 
 to stop the program, use "control + c" in terminal to stop the program
