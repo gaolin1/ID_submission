@@ -1,9 +1,11 @@
 from typing import Container
+from altair.vegalite.v4.schema.channels import Column
 import pandas as pd
 from pandas.core import frame
 from pandas.io import excel
 import streamlit as st
 import altair as alt
+import numpy as np
 
 def main():
     try:
@@ -124,7 +126,13 @@ def grab_drug_both(df, df2, type):
 
 def get_total(df, dep_or_loc, ddd_or_dot):
     value = ddd_or_dot + " " + dep_or_loc + " Per 1000 Patients"
+    ddd_or_dot_value = ddd_or_dot + "_VALUE"
+    df_total_days = df.groupby("MONTH_BEGIN_DT", as_index=False)["Patient Days"].sum()
+    df = df.merge(df_total_days, left_on="MONTH_BEGIN_DT", right_on="MONTH_BEGIN_DT").drop("Patient Days_x", axis="columns")
+    df[value] = df[ddd_or_dot_value]/df["Patient Days_y"]*1000
+    df[value] = df[value].round(2)
     df = df.groupby("MONTH_BEGIN_DT", as_index=False)[value].sum()
+    #show_df(df)
     return df
 
 def grab_drug_one(df, ddd_or_dot, type):
