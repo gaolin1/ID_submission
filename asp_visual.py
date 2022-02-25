@@ -3,16 +3,23 @@ import io
 import msoffcrypto
 import sys
 from streamlit import cli as stcli
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import asksaveasfilename
 
 def main():
     report_input = input("Process Epic Report? (Y/N): ")
     while report_input not in ("Y", "N"):
         report_input = input("Please enter either Y or N: ")
     if report_input == "Y":
-        main_type = input("Please indicate type of report (DDD/DOT) to be processed: ")
-        while main_type not in ("DDD", "DOT"):
-            main_type = input("Please enter either DDD or DOT: ")
-        sub_type = int(input("Please choose one of the following (1/2/3):\n1. Location\n2. Department\n3. Both\n"))
+        main_type = input("\n1. DDD\n2. DOT\nPlease indicate type of report (1/2) to be processed: ")
+        while main_type not in ("1", "2"):
+            main_type = input("Please enter either 1 or 2: ")
+        if main_type == "1":
+            main_type = "DDD"
+        else:
+            main_type = "DOT"
+        sub_type = int(input("\n1. Location\n2. Department\n3. Both\nPlease choose one of the following (1/2/3): "))
         while sub_type not in (1,2,3):
             sub_type = int(input("Please enter 1, 2 or 3: "))
         if sub_type == 1:
@@ -56,7 +63,7 @@ def import_processed(df, main_type, sub_type):
 
 def import_df(type):
     decrypted = io.BytesIO()
-    read_path = input("Enter Epic " + type + " Report Output Path: ")
+    read_path = get_file()
     key = input("Enter File Password: ")
     with open(read_path, "rb") as f:
         file = msoffcrypto.OfficeFile(f)
@@ -65,14 +72,24 @@ def import_df(type):
     df = pd.read_excel(decrypted)
     return df
 
+def get_file():
+    Tk().withdraw()
+    filename = askopenfilename(initialdir = "./", title = "Select file",filetypes = [("Excel Files","*.xlsx")])
+    return filename
+
+def export_file():
+    Tk().withdraw()
+    filename = asksaveasfilename(initialdir = "./", title = "Save file",filetypes = [("Excel Files","*.xlsx")])
+    return filename
+
 def export_one_df(df1, type1):
-    write_path = input("Enter location for output xlsx file: ")
+    write_path = export_file()
     write = pd.ExcelWriter(write_path, engine='xlsxwriter')
     df1.to_excel(write, type1, index=False)
     write.save()
 
 def export_two_df(df1, type1, df2, type2):
-    write_path = input("Enter location for output xlsx file: ")
+    write_path = export_file()
     write = pd.ExcelWriter(write_path, engine='xlsxwriter')
     df1.to_excel(write, type1, index=False)
     df2.to_excel(write, type2, index=False)

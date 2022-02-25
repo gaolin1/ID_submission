@@ -1,10 +1,11 @@
 ### **Requirements**
 - Python 3 (tested on versions 3.9 and 3.10 on mac/windows)
 - Required packages:
-1. [pandas](https://pandas.pydata.org/docs/getting_started/install.html) (command: `pip install pandas`)
-2. [msoffcypto](https://github.com/nolze/msoffcrypto-tool) (command: `pip install msoffcrypto-tool`)
-3. [streamlit](https://streamlit.io) (command: `pip install streamlit`)
-4. [altair](https://altair-viz.github.io) (command: `pip install altair`)
+1. [pandas](https://pandas.pydata.org/docs/getting_started/install.html) (install command: `pip install pandas`)
+2. [msoffcypto](https://github.com/nolze/msoffcrypto-tool) (install command: `pip install msoffcrypto-tool`)
+3. [streamlit](https://streamlit.io) (install command: `pip install streamlit`)
+4. [altair](https://altair-viz.github.io) (install command: `pip install altair`)
+5. [tkinter](https://docs.python.org/3/library/tkinter.html) (install command: `pip install tk`)
 ---
 
 to run the script, either 
@@ -12,17 +13,19 @@ to run the script, either
 2. use right click on the asp_visual.py file and launch with **python launcher** 
 ---
 
-### This script has two function options
-> <img width="493" alt="image" src="https://user-images.githubusercontent.com/28236780/152463994-bacdf740-2d2c-4055-b615-ef46ac540e41.png">
+### This script has two main options
+> <img width="654" alt="image" src="https://user-images.githubusercontent.com/28236780/155786891-e4a3655b-328f-411e-94d2-987481528e67.png">
 * Process Epic exported file
   * To process Epic exported report, enter Y.
-  * Then select either the exported report are DDD or DOT.
-    * *sample file ddd_feb_2.xlsx* 
+  * Then select either the exported report are DDD or DOT by entering either 1 or 2.
   * Depending on the exported report, select either to process location, department or both location and department reports (1 or 2 or 3).
-  * Enter path to exported file, then enter password.
-  * Finally, enter file path for the processed file or file name directly to export on the same folder (with extension (xlsx)): 
-    * example: 'output file name' *(to export on the same folder of the script)*
-    * example: /Users/'User Name'/Downloads/'output file name' *(to export to an exact folder)*
+  * select the exported excel file from Epic in the dialog window
+    * <img width="334" alt="image" src="https://user-images.githubusercontent.com/28236780/155064252-df332a88-c6ea-4d59-bc93-572712ab787e.png"> 
+    * *sample file: HHS_RX_RW_DDDsummary_20220111_1729.xlsx* 
+  * enter the password
+  * Finally, enter the file name to save under the same folder: 
+    * <img width="459" alt="image" src="https://user-images.githubusercontent.com/28236780/155802354-3a5b29c7-b9d6-4ff7-9d8b-08afef6fc25a.png">
+    * to save under different folder, select the down arrow to expand the file dialog    
 ---
 
 * Launch dashboard visualization app
