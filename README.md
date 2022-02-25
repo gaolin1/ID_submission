@@ -20,7 +20,7 @@ to run the script, either
   * Then select either the exported report are DDD or DOT by entering either 1 or 2.
   * Depending on the exported report, select either to process location, department or both location and department reports (1 or 2 or 3).
   * select the exported excel file from Epic in the dialog window
-    * <img width="334" alt="image" src="https://user-images.githubusercontent.com/28236780/155064252-df332a88-c6ea-4d59-bc93-572712ab787e.png"> 
+    * <img width="654" alt="image" src="https://user-images.githubusercontent.com/28236780/155802819-bcc90e75-fcdf-4cf6-9020-5be44d7b33e1.png">
     * *sample file: HHS_RX_RW_DDDsummary_20220111_1729.xlsx* 
   * enter the password
   * Finally, enter the file name to save under the same folder: 
