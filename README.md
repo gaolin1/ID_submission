@@ -43,4 +43,4 @@ to run the script, either
   * Location or department line graphs will also display.
   * **NOTE** yellow dashed line indicates weighted sum of all selected data.
 
-to stop the program, use "control + c" in terminal to stop the program
+to stop the web program, use "control + c" in terminal to stop the program
