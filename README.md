@@ -14,13 +14,13 @@ to run the script, either
 ---
 
 ### This script has two main options
-> <img width="654" alt="image" src="https://user-images.githubusercontent.com/28236780/155786891-e4a3655b-328f-411e-94d2-987481528e67.png">
+> <img width="654" alt="image" src="https://user-images.githubusercontent.com/28236780/155802819-bcc90e75-fcdf-4cf6-9020-5be44d7b33e1.png">
 * Process Epic exported file
   * To process Epic exported report, enter Y.
   * Then select either the exported report are DDD or DOT by entering either 1 or 2.
   * Depending on the exported report, select either to process location, department or both location and department reports (1 or 2 or 3).
   * select the exported excel file from Epic in the dialog window
-    * <img width="654" alt="image" src="https://user-images.githubusercontent.com/28236780/155802819-bcc90e75-fcdf-4cf6-9020-5be44d7b33e1.png">
+    * <img width="456" alt="image" src="https://user-images.githubusercontent.com/28236780/155803043-923c6e4c-d892-4431-b089-933dd3b62a93.png">
     * *sample file: HHS_RX_RW_DDDsummary_20220111_1729.xlsx* 
   * enter the password
   * Finally, enter the file name to save under the same folder: 
