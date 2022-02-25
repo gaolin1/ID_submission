@@ -42,5 +42,4 @@ to run the script, either
   * <img width="869" alt="image" src="https://user-images.githubusercontent.com/28236780/154320518-a58f7290-2ff8-4bc3-a6e1-23151465824e.png">
   * Location or department line graphs will also display.
   * **NOTE** yellow dashed line indicates weighted sum of all selected data.
-
-to stop the web program, use "control + c" in terminal to stop the program
+  * to stop the web program, use "control + c" in terminal to stop the program
