@@ -6,6 +6,7 @@
 3. [streamlit](https://streamlit.io) (install command: `pip install streamlit`)
 4. [altair](https://altair-viz.github.io) (install command: `pip install altair`)
 5. [tkinter](https://docs.python.org/3/library/tkinter.html) (install command: `pip install tk`)
+6. [PySimpleGUI](https://www.pysimplegui.org/en/latest/) (install command: `pip install pysimplegui`)
 ---
 
 to run the script, either 
@@ -14,22 +15,26 @@ to run the script, either
 ---
 
 ### This script has two main options
-> <img width="654" alt="image" src="https://user-images.githubusercontent.com/28236780/155802819-bcc90e75-fcdf-4cf6-9020-5be44d7b33e1.png">
+> <img width="547" alt="image" src="https://user-images.githubusercontent.com/28236780/189789926-a728ce53-704a-4bde-8f3d-d4398407fcbc.png">
 * Process Epic exported file
-  * To process Epic exported report, enter Y.
-  * Then select either the exported report are `DDD` or `DOT` by entering either 1 or 2.
-  * Depending on the exported report, select either to process `location`, `department` or `both` location and department reports (1 or 2 or 3).
-  * select the `exported excel file from Epic` in the dialog window
-    * <img width="456" alt="image" src="https://user-images.githubusercontent.com/28236780/155803043-923c6e4c-d892-4431-b089-933dd3b62a93.png">
-    * *sample file: HHS_RX_RW_DDDsummary_20220111_1729.xlsx* 
-    * enter the `password`
-  * Finally, enter the `file name` to save under the same folder: 
-    * <img width="459" alt="image" src="https://user-images.githubusercontent.com/28236780/155802354-3a5b29c7-b9d6-4ff7-9d8b-08afef6fc25a.png">
-    * to save under different folder, select the down arrow to expand the file dialog    
+  * Then select either the exported report are `DDD` or `DOT`.
+  * Depending on the exported report, select either to process `location`, `department` or `both` reports.
+> <img width="734" alt="image" src="https://user-images.githubusercontent.com/28236780/189790240-5fd82c26-8ccc-422d-875b-43fb6252e3ce.png">
+  * for `location` or `department`:
+    * select the Epic output file using `Browse`, enter the file password
+    * then click `Import and Process`
+    * once finished, click `Save As` to enter the desired output name and then click `Export`
+> <img width="734" alt="image" src="https://user-images.githubusercontent.com/28236780/189790626-b4aea7ee-2bd7-47dd-aaf6-a403d9e4a1e8.png">
+  * for `both`:
+    * follow the prompts to select both location and department files and corresponding passwords
+    * then click `Import and Process`
+    * once finished, click `Save As` to enter the desired output name and then click `Export`
+
 ---
 
 * Launch dashboard visualization app
-  * To launch visualization page, enter Y.
+> <img width="547" alt="image" src="https://user-images.githubusercontent.com/28236780/189789926-a728ce53-704a-4bde-8f3d-d4398407fcbc.png">
+  * To launch visualization page, select `Launch Analytics Dashboard`.
   * <img width="754" alt="image" src="https://user-images.githubusercontent.com/28236780/152464782-17f28c6e-2a95-4f47-bceb-d97f3dc72532.png">
   * Click **Browse file** to open file explorer and choose the output processed file.
   * Then select either `DDD` or `DOT`.
