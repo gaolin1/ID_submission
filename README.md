@@ -17,7 +17,7 @@ to run the script, either
 ### This script has two main options
 > <img width="547" alt="image" src="https://user-images.githubusercontent.com/28236780/189789926-a728ce53-704a-4bde-8f3d-d4398407fcbc.png">
 * Process Epic exported file
-  * Then select either the exported report are `DDD` or `DOT`.
+  * First select either the exported report are `DDD` or `DOT`.
   * Depending on the exported report, select either to process `location`, `department` or `both` reports.
 > <img width="734" alt="image" src="https://user-images.githubusercontent.com/28236780/189790240-5fd82c26-8ccc-422d-875b-43fb6252e3ce.png">
   * for `location` or `department`:
