@@ -41,13 +41,16 @@ def prepare_loc(df, drug_list, loc_list):
 
 def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total):
     data = data.reset_index()
+    #to correct for "one-off" error in time axis
+    data["MONTH"] = data["MONTH_BEGIN_DT"].dt.strftime['%Y-%m-%dT%H:%M:%SZ']
+    df_total["MONTH"] = df_total["MONTH_BEGIN_DT"].dt.strftime['%Y-%m-%dT%H:%M:%SZ']
     value_type = ddd_or_dot + " " + dep_or_loc + " Per 1000 Patients"
     base = alt.Chart(data).properties(height=450,width=800)
     highlight = alt.selection(type='single', on='mouseover', fields=['symbol'], nearest=True)
     chart = (
         base.mark_line(opacity=0.4)
         .encode(
-            x=alt.X("month(MONTH_BEGIN_DT):T", title = "month"),
+            x=alt.X("month(MONTH):T", title = "month"),
             y=alt.Y(value_type + ":Q",stack=None, aggregate="sum", title = ddd_or_dot + " per 1000 patient days "),
             color=type+":N",
         )
@@ -56,7 +59,7 @@ def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total):
     total = (
         alt.Chart(df_total).properties(height=450,width=800).mark_line(color='yellow', opacity=1, strokeDash=[0.2,4])
         .encode(
-            x=alt.X("month(MONTH_BEGIN_DT):T", title = "month"),
+            x=alt.X("month(MONTH):T", title = "month"),
             y=alt.Y(value_type + ":Q"),
         )
     )
