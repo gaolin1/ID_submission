@@ -42,8 +42,8 @@ def prepare_loc(df, drug_list, loc_list):
 def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total):
     data = data.reset_index()
     #to correct for "one-off" error in time axis
-    data["MONTH"] = data["MONTH_BEGIN_DT"].dt.strftime['%b %d %Y']
-    df_total["MONTH"] = df_total["MONTH_BEGIN_DT"].dt.strftime['%b %d %Y']
+    data["MONTH"] = data["MONTH_BEGIN_DT"].dt.strftime('%b %d %Y')
+    df_total["MONTH"] = df_total["MONTH_BEGIN_DT"].dt.strftime('%b %d %Y')
     value_type = ddd_or_dot + " " + dep_or_loc + " Per 1000 Patients"
     base = alt.Chart(data).properties(height=450,width=800)
     highlight = alt.selection(type='single', on='mouseover', fields=['symbol'], nearest=True)
