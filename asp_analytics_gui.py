@@ -34,7 +34,10 @@ def main():
     def import_processed(df, main_type, sub_type):
         df[main_type + " " + sub_type + " Per 1000 Patients"] = df["Per 1000 Patients"]
         df = df.drop(columns=["Per 1000 Patients"])
-        df["GROUPER_NAME"] = df["GROUPER_NAME"].str.replace("ERX CONCEPT", "")
+        df["GROUPER_NAME"] = df["GROUPER_NAME"].str.replace("CONCEPT", "")
+        df["GROUPER_NAME"] = df["GROUPER_NAME"].str.replace("HHS", "")
+        df["GROUPER_NAME"] = df["GROUPER_NAME"].str.replace("GENERAL", "")
+        df["GROUPER_NAME"] = df["GROUPER_NAME"].str.replace("ERX", "")
         return df
 
     def export_one_df(df, type, write_path):
@@ -83,7 +86,7 @@ def main():
             [sg.Text("Save Processed File", background_color="black")],
             [sg.InputText(key="-SAVE_PATH-", enable_events=True),
             sg.FileSaveAs(initial_folder="./", file_types=(("Excel files", "*.xlsx"),), default_extension="*.xlsx")],
-            [sg.Button("Export"), sg.Button("Cancel")]
+            [sg.Button("Export"), sg.Exit()]
         ]
         window = sg.Window("Process " + report_type + " " + level_type + " Epic Output File", layout=layout, finalize=True)
         return window
@@ -105,7 +108,7 @@ def main():
             [sg.Text("Save Processed File", background_color="black")],
             [sg.InputText(key="-SAVE_PATH-", enable_events=True),
             sg.FileSaveAs(initial_folder="./", file_types=(("Excel files", "*.xlsx"),), default_extension="*.xlsx")],
-            [sg.Button("Export (both)"), sg.Button("Cancel")]
+            [sg.Button("Export (both)"), sg.Exit()]
         ]
         window = sg.Window("Process " + report_type + " location and department Epic Output File", layout=layout, finalize=True)
         return window        
@@ -114,7 +117,7 @@ def main():
 
     while True:
         window, event, values = sg.read_all_windows()
-        if event in (sg.WIN_CLOSED, 'Exit', 'Cancel'):
+        if event in (sg.WIN_CLOSED, 'Exit'):
             window.close()
             if window == window2:       # if closing win 2, mark as closed
                 window2 = None
@@ -133,7 +136,6 @@ def main():
             write_path = values["-SAVE_PATH-"]
             export_one_df(df, combined_type, write_path)
             sg.popup("File save sucessful, saved under " + write_path, background_color="black")
-            window.close()
         if event == "Both" and not window2:
             report_type = get_selected_var(window, report_choices, "TYPE 0", 3)
             window2 = double_process_window(report_type)
@@ -149,7 +151,6 @@ def main():
             write_path = values["-SAVE_PATH-"]
             export_two_df(df_loc, combined_loc_type, df_dep, combined_dep_type, write_path)
             sg.popup("File save sucessful, saved under " + write_path, background_color="black")
-            window.close()
         if event == "Launch Analytics Dashboard":
             sys.argv = ['streamlit', 'run', 'asp_visual_st.py']
             sys.exit(stcli.main())
