@@ -11,8 +11,8 @@
 ---
 
 to run the script, either 
-1. enter `python3 asp_visual.py` in terminal (mac) or cmd (windows)
-2. use right click on the asp_visual.py file and launch with **python launcher** 
+1. select release on the right sidebar and download the latest release
+2. use right click on the asp_visual.py file and launch with **python launcher** OR enter `python3 asp_visual.py` in terminal (mac) or cmd (windows)
 ---
 
 ### This script has two main options
