@@ -1,7 +1,7 @@
 import io
 import msoffcrypto
 import sys
-from streamlit import cli as stcli
+from streamlit.web import cli as stcli
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from tkinter.filedialog import asksaveasfilename
