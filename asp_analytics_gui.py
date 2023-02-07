@@ -146,7 +146,7 @@ def main():
             sg.popup("Import and processing successful", background_color="black")
         if event == "Export (both)":
             combined_loc_type = report_type + " per Location"
-            combined_dep_type = report_type + " Department"
+            combined_dep_type = report_type + " per Department"
             write_path = values["-SAVE_PATH-"]
             export_two_df(df_loc, combined_loc_type, df_dep, combined_dep_type, write_path)
             sg.popup("File save sucessful, saved under " + write_path, background_color="black")

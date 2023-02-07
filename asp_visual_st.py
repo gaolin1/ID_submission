@@ -10,6 +10,7 @@ import numpy as np
 from io import BytesIO
 
 def main():
+    count = 0
     try:
         excel = st.file_uploader("Upload Epic export", type=["xlsx"])
         type = st.radio("Select either DDD (Defined Daily Dose) or DOT (Days Of Therapy)",["DDD", "DOT"])
@@ -19,15 +20,15 @@ def main():
             type_loc = type + " per Location"
             df_dep = pd.read_excel(excel, type_dep)
             df_loc = pd.read_excel(excel, type_loc)
-            grab_drug_both(df_dep, df_loc, type)
+            count = grab_drug_both(df_dep, df_loc, type, count)
         elif report_type == "Location":
             type_loc = type + " per Location"
             df_loc = pd.read_excel(excel, type_loc)
-            grab_drug_one(df_loc, type, type_loc)
+            count = grab_drug_one(df_loc, type, type_loc, count)
         else:
             type_dep = type + " per Department"
             df_loc = pd.read_excel(excel, type_dep)
-            grab_drug_one(df_loc, type, type_dep)         
+            count = grab_drug_one(df_loc, type, type_dep, count)         
     except ValueError or TypeError or AttributeError:
         pass
 
@@ -50,7 +51,7 @@ def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total):
     chart = (
         base.mark_line(opacity=0.4)
         .encode(
-            x=alt.X("month(MONTH):T", title = "month"),
+            x=alt.X("yearmonth(MONTH):T", title = "month"),
             y=alt.Y(value_type + ":Q",stack=None, aggregate="sum", title = ddd_or_dot + " per 1000 patient days "),
             color=type+":N",
         )
@@ -59,7 +60,7 @@ def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total):
     total = (
         alt.Chart(df_total).properties(height=450,width=800).mark_line(color='yellow', opacity=1, strokeDash=[0.2,4])
         .encode(
-            x=alt.X("month(MONTH):T", title = "month"),
+            x=alt.X("yearmonth(MONTH):T", title = "month"),
             y=alt.Y(value_type + ":Q"),
         )
     )
@@ -79,57 +80,64 @@ def prepare_df(df):
     df = df.set_index("GROUPER_NAME")  
     return df
 
-def checkbox(df, drug, type):
+def checkbox(df, drug, type, count):
     try:
         df_filtered = df.loc[drug]
         var_list = df_filtered[type].unique().tolist()
         container = st.container()
         all = st.checkbox("Select all " + type)
         if all:
-            var = container.multiselect("Choose " + type, options=var_list, default=var_list, key="4")
+            var = container.multiselect("Choose " + type, options=var_list, default=var_list, key=count)
+            count += 1
             if not var:
                 container.error("Please select at least one " + type + " or use select all")
         else:
-            var = container.multiselect("Choose " + type, options=var_list, key="1")
+            var = container.multiselect("Choose " + type, options=var_list, key=count)
+            count +=1
             if not var:
                 container.error("Please select at least one " + type + " or use select all")
         df_filtered = df_filtered.reset_index()
         df_filtered = df_filtered.set_index(type)
         df_filtered = df_filtered.loc[var]
-        return df_filtered, var
+        return df_filtered, var, count
     except KeyError:
         pass
 
-def grab_drug_both(df, df2, type):
+def grab_drug_both(df, df2, type, count):
     df = df.set_index("GROUPER_NAME")
     drug_list = df.index.unique().tolist()
     container = st.container()
     all = st.checkbox("Select all medication groupers")
     if all:
-        drug_selected = container.multiselect("Choose grouper", options=drug_list, default=drug_list, key="4")
+        drug_selected = container.multiselect("Choose grouper", options=drug_list, default=drug_list, key=count)
+        count += 1
         if not drug_selected:
             container.error("Please select at least one grouper or use select all")
     else:
-        drug_selected = container.multiselect("Choose grouper", options=drug_list, key="1")
+        drug_selected = container.multiselect("Choose grouper", options=drug_list, key=count)
+        count += 1
         if not drug_selected:
             container.error("Please select at least one grouper")
     #st.text(drug_selected)
-    df_loc_for_dep, loc_list = checkbox(df, drug_selected, "LOC_NAME")
+    df_loc_for_dep, loc_list, count = checkbox(df, drug_selected, "LOC_NAME", count)
     df_loc_for_dep = prepare_df(df_loc_for_dep)
     df_loc = prepare_loc(df2, drug_selected, loc_list)
     df_loc_total = get_total(df_loc, "Location", type)
     loc_chart = make_chart(df_loc, "Location", type, "LOC_NAME", df_loc_total)
     show_df(df_loc)
+    show_df(df_loc_total, "total", "loc")
     download(df_loc,type, " per location export")
     st.altair_chart(loc_chart, use_container_width=True)
-    df_loc_dep, dep_list = checkbox(df_loc_for_dep, drug_selected, "DEPARTMENT_NAME")
+    df_loc_dep, dep_list, count = checkbox(df_loc_for_dep, drug_selected, "DEPARTMENT_NAME", count)
     df_dep_total = get_total(df_loc_dep, "Department", type)
     dep_chart = make_chart(df_loc_dep, "Department", type, "DEPARTMENT_NAME", df_dep_total)
     show_df(df_loc_dep)
+    show_df(df_dep_total, "total", "dep")
     download(df_loc_dep, type, " per department export")
     #show_df(df_loc_total)
     #show_df(df_dep_total)
     st.altair_chart(dep_chart, use_container_width=True)
+    return count
 
 def download(df,type, loc_or_dep):
     df_excel = to_excel(df)
@@ -158,44 +166,57 @@ def get_total(df, dep_or_loc, ddd_or_dot):
     df_total_days = df.groupby("MONTH_BEGIN_DT", as_index=False)["Patient Days"].sum()
     df = df.merge(df_total_days, left_on="MONTH_BEGIN_DT", right_on="MONTH_BEGIN_DT").drop("Patient Days_x", axis="columns")
     df[value] = df[ddd_or_dot_value]/df["Patient Days_y"]*1000
-    df[value] = df[value].round(2)
-    df = df.groupby("MONTH_BEGIN_DT", as_index=False)[value].sum()
+    df = df.groupby("MONTH_BEGIN_DT", as_index=False)[value].sum().round(2)
     #show_df(df)
     return df
 
-def grab_drug_one(df, ddd_or_dot, type):
+def grab_drug_one(df, ddd_or_dot, type, count):
     df = df.set_index("GROUPER_NAME")
     drug_list = df.index.unique().tolist()
     container = st.container()
     all = st.checkbox("Select all medication groupers")
     if all:
-        drug_selected = container.multiselect("Choose grouper", options=drug_list, default=drug_list, key="4")
+        drug_selected = container.multiselect("Choose grouper", options=drug_list, default=drug_list, key=count)
+        count += 1
         if not drug_selected:
             container.error("Please select at least one grouper or use select all")
     else:
-        drug_selected = container.multiselect("Choose grouper", options=drug_list, key="1")
+        drug_selected = container.multiselect("Choose grouper", options=drug_list, key=count)
+        count += 1
         if not drug_selected:
             container.error("Please select at least one grouper")
     #st.text(drug_selected)
     if "Location" in type:
-        df_loc, loc_list = checkbox(df, drug_selected, "LOC_NAME")
+        df_loc, loc_list, count = checkbox(df, drug_selected, "LOC_NAME", count)
         df_loc = prepare_df(df_loc)
         df_loc_total = get_total(df_loc, "Location", ddd_or_dot)
         loc_chart = make_chart(df_loc, "Location", ddd_or_dot, "LOC_NAME", df_loc_total)
         show_df(df_loc)
+        show_df(df_loc_total, "total")
         download(df_loc, type, " export")
         st.altair_chart(loc_chart, use_container_width=True)
     else:
-        df_dep, dep_list = checkbox(df, drug_selected, "DEPARTMENT_NAME")
+        df_dep, dep_list, count= checkbox(df, drug_selected, "DEPARTMENT_NAME", count)
         df_dep = prepare_df(df_dep)
         df_dep_total = get_total(df_dep, "Department", ddd_or_dot)
-        dep_chart = make_chart(df_dep, "Department", ddd_or_dot, "DEPARTMENT_NAME", df_dep_total)
+        dep_chart, df_dep_total = make_chart(df_dep, "Department", ddd_or_dot, "DEPARTMENT_NAME", df_dep_total)
         show_df(df_dep)
+        show_df(df_dep_total, "total")
         download(df_dep, type, " export")
         st.altair_chart(dep_chart, use_container_width=True)
+    return count
 
-def show_df(df):
+def show_df(df, type="", loc_or_dep=""):
     df = df.astype(str)
+    if type=="total":
+        if loc_or_dep == "loc":
+            st.text("Weighted Total By Month (Hospital)")
+        elif loc_or_dep =="dep":
+            st.text("Weighted Total By Month (Department)")
+        else:
+            st.text("Weighted Total By Month")
+    else:
+        st.text("Selected Data")
     st.dataframe(df)
 
 if __name__ == '__main__':
