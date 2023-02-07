@@ -4,10 +4,9 @@ import msoffcrypto
 import sys
 import PySimpleGUI as sg
 import xlsxwriter
-import streamlit.bootstrap
 from streamlit import config as _config
 import sys
-from streamlit import cli as stcli
+from streamlit.web import cli as stcli
 
 def main():
     ##general utility functions

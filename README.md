@@ -1,5 +1,6 @@
 ### **Requirements**
-- Python 3 (tested on versions 3.9 and 3.10 on mac/windows)
+- Recommended: to install all required packages, run `pip3 install -r requirements.txt`
+- Python 3 (tested on versions 3.9, 3.10 and 3.11 on mac/windows)
 - Required packages:
 1. [pandas](https://pandas.pydata.org/docs/getting_started/install.html) (install command: `pip install pandas`)
 2. [msoffcypto](https://github.com/nolze/msoffcrypto-tool) (install command: `pip install msoffcrypto-tool`)
