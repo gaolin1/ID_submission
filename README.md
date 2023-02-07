@@ -10,10 +10,9 @@
 6. [PySimpleGUI](https://www.pysimplegui.org/en/latest/) (install command: `pip install pysimplegui`)
 ---
 
-to run the script:
+- to run the script:
 1. select release on the right sidebar and download the latest release
-
-then either:
+- then either:
 2. a) use right click on the asp_visual.py file and launch with **python launcher** 
 2. b) OR enter `python3 asp_visual.py` in terminal (mac) or cmd (windows)
 ---
