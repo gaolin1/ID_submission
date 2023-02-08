@@ -151,6 +151,7 @@ def main():
             export_two_df(df_loc, combined_loc_type, df_dep, combined_dep_type, write_path)
             sg.popup("File save sucessful, saved under " + write_path, background_color="black")
         if event == "Launch Analytics Dashboard":
+            print("Press Control + C to terminate the program")
             sys.argv = ['streamlit', 'run', 'asp_visual_st.py']
             sys.exit(stcli.main())
 
