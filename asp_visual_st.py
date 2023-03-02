@@ -12,9 +12,9 @@ from io import BytesIO
 def main():
     count = 0
     try:
-        excel = st.file_uploader("Upload Epic export", type=["xlsx"])
-        type = st.radio("Select either DDD (Defined Daily Dose) or DOT (Days Of Therapy)",["DDD", "DOT"])
-        report_type = st.radio("Select type of uploaded report", ["Location", "Department", "Both"])
+        excel = st.sidebar.file_uploader("Upload Epic export", type=["xlsx"])
+        type = st.sidebar.radio("Select either DDD (Defined Daily Dose) or DOT (Days Of Therapy)",["DDD", "DOT"])
+        report_type = st.sidebar.radio("Select type of uploaded report", ["Location", "Department", "Both"])
         if report_type == "Both":
             type_dep = type + " per Department"
             type_loc = type + " per Location"
@@ -27,8 +27,8 @@ def main():
             count = grab_drug_one(df_loc, type, type_loc, count)
         else:
             type_dep = type + " per Department"
-            df_loc = pd.read_excel(excel, type_dep)
-            count = grab_drug_one(df_loc, type, type_dep, count)         
+            df_dep = pd.read_excel(excel, type_dep)
+            count = grab_drug_one(df_dep, type, type_dep, count)         
     except ValueError or TypeError or AttributeError:
         pass
 
@@ -40,13 +40,13 @@ def prepare_loc(df, drug_list, loc_list):
     df_drug_loc = df_drug_loc.loc[loc_list]
     return df_drug_loc
 
-def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total):
+def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total, count):
     data = data.reset_index()
     #to correct for "one-off" error in time axis
     data["MONTH"] = data["MONTH_BEGIN_DT"].dt.strftime('%b %d %Y')
     df_total["MONTH"] = df_total["MONTH_BEGIN_DT"].dt.strftime('%b %d %Y')
     value_type = ddd_or_dot + " " + dep_or_loc + " Per 1000 Patients"
-    base = alt.Chart(data).properties(height=450,width=800)
+    base = alt.Chart(data).properties(height=500,width=1000)
     highlight = alt.selection(type='single', on='mouseover', fields=['symbol'], nearest=True)
     chart = (
         base.mark_line(opacity=0.4)
@@ -58,13 +58,12 @@ def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total):
         .interactive()
         )
     total = (
-        alt.Chart(df_total).properties(height=450,width=800).mark_line(color='yellow', opacity=1, strokeDash=[0.2,4])
+        alt.Chart(df_total).properties(height=500,width=1000).mark_line(color='red', opacity=1, strokeDash=[4,4])
         .encode(
             x=alt.X("yearmonth(MONTH):T", title = "month"),
             y=alt.Y(value_type + ":Q"),
         )
     )
-
     #take out for now
     #rule = base.mark_rule(color='red', opacity=0.8, strokeDash=[1,1]).transform_window(
     #    cumulative= 'sum(' + value_type + ')',
@@ -72,8 +71,20 @@ def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total):
     #    y='cumulative:Q',
     #    x=alt.X("month(MONTH_BEGIN_DT):T", title = "month"),
     #    )
-    chart = chart + total
-    return chart
+    if count > 1:
+        chart = chart + total
+        st.markdown("<span style='color:red'>- - Weighted Total</span>",
+             unsafe_allow_html=True)
+    st.altair_chart(chart)
+
+
+def count_selected(data, type=""):
+    data = data.reset_index()
+    if "DEPARTMENT" in type:
+        count = data["DEPARTMENT_NAME"].drop_duplicates().count()
+    else:
+        count = data["LOC_NAME"].drop_duplicates().count()
+    return count
 
 def prepare_df(df):
     df = df.reset_index()
@@ -123,20 +134,20 @@ def grab_drug_both(df, df2, type, count):
     df_loc_for_dep = prepare_df(df_loc_for_dep)
     df_loc = prepare_loc(df2, drug_selected, loc_list)
     df_loc_total = get_total(df_loc, "Location", type)
-    loc_chart = make_chart(df_loc, "Location", type, "LOC_NAME", df_loc_total)
     show_df(df_loc)
     show_df(df_loc_total, "total", "loc")
     download(df_loc,type, " per location export")
-    st.altair_chart(loc_chart, use_container_width=True)
+    sel_count = count_selected(df_loc, "LOC")
+    make_chart(df_loc, "Location", type, "LOC_NAME", df_loc_total, sel_count)
     df_loc_dep, dep_list, count = checkbox(df_loc_for_dep, drug_selected, "DEPARTMENT_NAME", count)
     df_dep_total = get_total(df_loc_dep, "Department", type)
-    dep_chart = make_chart(df_loc_dep, "Department", type, "DEPARTMENT_NAME", df_dep_total)
     show_df(df_loc_dep)
     show_df(df_dep_total, "total", "dep")
     download(df_loc_dep, type, " per department export")
     #show_df(df_loc_total)
     #show_df(df_dep_total)
-    st.altair_chart(dep_chart, use_container_width=True)
+    sel_dep_count = count_selected(df_loc_dep, "DEPARTMENT")
+    make_chart(df_loc_dep, "Department", type, "DEPARTMENT_NAME", df_dep_total, sel_dep_count)
     return count
 
 def download(df,type, loc_or_dep):
@@ -185,25 +196,24 @@ def grab_drug_one(df, ddd_or_dot, type, count):
         count += 1
         if not drug_selected:
             container.error("Please select at least one grouper")
-    #st.text(drug_selected)
     if "Location" in type:
         df_loc, loc_list, count = checkbox(df, drug_selected, "LOC_NAME", count)
         df_loc = prepare_df(df_loc)
         df_loc_total = get_total(df_loc, "Location", ddd_or_dot)
-        loc_chart = make_chart(df_loc, "Location", ddd_or_dot, "LOC_NAME", df_loc_total)
         show_df(df_loc)
         show_df(df_loc_total, "total")
         download(df_loc, type, " export")
-        st.altair_chart(loc_chart, use_container_width=True)
+        sel_count = count_selected(df_loc, "LOC")
+        make_chart(df_loc, "Location", ddd_or_dot, "LOC_NAME", df_loc_total, sel_count)
     else:
         df_dep, dep_list, count= checkbox(df, drug_selected, "DEPARTMENT_NAME", count)
         df_dep = prepare_df(df_dep)
         df_dep_total = get_total(df_dep, "Department", ddd_or_dot)
-        dep_chart, df_dep_total = make_chart(df_dep, "Department", ddd_or_dot, "DEPARTMENT_NAME", df_dep_total)
         show_df(df_dep)
         show_df(df_dep_total, "total")
         download(df_dep, type, " export")
-        st.altair_chart(dep_chart, use_container_width=True)
+        sel_count = count_selected(df_dep, "DEPARTMENT")
+        make_chart(df_dep, "Department", ddd_or_dot, "DEPARTMENT_NAME", df_dep_total, sel_count)
     return count
 
 def show_df(df, type="", loc_or_dep=""):
