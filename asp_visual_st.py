@@ -10,6 +10,7 @@ import numpy as np
 from io import BytesIO
 
 def main():
+    st.set_page_config(layout="wide")
     count = 0
     try:
         excel = st.sidebar.file_uploader("Upload Epic export", type=["xlsx"])
@@ -40,25 +41,46 @@ def prepare_loc(df, drug_list, loc_list):
     df_drug_loc = df_drug_loc.loc[loc_list]
     return df_drug_loc
 
-def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total, count):
+def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total, count, drug_list):
     data = data.reset_index()
     #to correct for "one-off" error in time axis
     data["MONTH"] = data["MONTH_BEGIN_DT"].dt.strftime('%b %d %Y')
     df_total["MONTH"] = df_total["MONTH_BEGIN_DT"].dt.strftime('%b %d %Y')
     value_type = ddd_or_dot + " " + dep_or_loc + " Per 1000 Patients"
-    base = alt.Chart(data).properties(height=500,width=1000)
-    highlight = alt.selection(type='single', on='mouseover', fields=['symbol'], nearest=True)
-    chart = (
-        base.mark_line(opacity=0.4)
+    data["Legend (Antimicrobial - Unit)"] = data["GROUPER_NAME"] + " - " + data[type]
+    data = data.set_index("Legend (Antimicrobial - Unit)")
+    legend = data.index.unique().tolist()
+    data = data.reset_index()
+    base = alt.Chart(data).properties(height=800)
+    brush = alt.selection(type='interval', encodings=['x'])
+    if dep_or_loc == "Department":
+        field_name = "DEPARTMENT_NAME"
+    else:
+        field_name = "LOC_NAME"
+    chart_circle = (
+        base.mark_line(opacity=0.4).mark_circle(size=70)
         .encode(
             x=alt.X("yearmonth(MONTH):T", title = "month"),
             y=alt.Y(value_type + ":Q",stack=None, aggregate="sum", title = ddd_or_dot + " per 1000 patient days "),
-            color=type+":N",
+            color=alt.Color("Legend (Antimicrobial - Unit):N",legend=alt.Legend(titleLimit=800, labelLimit=600, direction="vertical", orient="top")),
+            tooltip=[alt.Tooltip(field="GROUPER_NAME"),alt.Tooltip(field=field_name),alt.Tooltip(field=value_type)]
         )
-        .interactive()
+        .add_selection(
+            brush
         )
+        )
+    chart_line = (
+        base.mark_line(opacity=0.4, strokeWidth=4)
+        .encode(
+            x=alt.X("yearmonth(MONTH):T", title = "month"),
+            y=alt.Y(value_type + ":Q",stack=None, aggregate="sum", title = ddd_or_dot + " per 1000 patient days "),
+            color=alt.Color("Legend (Antimicrobial - Unit):N")
+        )
+        )
+    chart = chart_circle + chart_line
+
     total = (
-        alt.Chart(df_total).properties(height=500,width=1000).mark_line(color='red', opacity=1, strokeDash=[4,4])
+        alt.Chart(df_total).mark_line(color='red', opacity=1, strokeDash=[4,4])
         .encode(
             x=alt.X("yearmonth(MONTH):T", title = "month"),
             y=alt.Y(value_type + ":Q"),
@@ -71,11 +93,11 @@ def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total, count):
     #    y='cumulative:Q',
     #    x=alt.X("month(MONTH_BEGIN_DT):T", title = "month"),
     #    )
-    if count > 1:
+    if len(drug_list) > 1 or count > 1:
         chart = chart + total
         st.markdown("<span style='color:red'>- - Weighted Total</span>",
              unsafe_allow_html=True)
-    st.altair_chart(chart)
+    st.altair_chart(chart, use_container_width=True)
 
 
 def count_selected(data, type=""):
@@ -138,7 +160,7 @@ def grab_drug_both(df, df2, type, count):
     show_df(df_loc_total, "total", "loc")
     download(df_loc,type, " per location export")
     sel_count = count_selected(df_loc, "LOC")
-    make_chart(df_loc, "Location", type, "LOC_NAME", df_loc_total, sel_count)
+    make_chart(df_loc, "Location", type, "LOC_NAME", df_loc_total, sel_count, drug_list)
     df_loc_dep, dep_list, count = checkbox(df_loc_for_dep, drug_selected, "DEPARTMENT_NAME", count)
     df_dep_total = get_total(df_loc_dep, "Department", type)
     show_df(df_loc_dep)
@@ -147,7 +169,7 @@ def grab_drug_both(df, df2, type, count):
     #show_df(df_loc_total)
     #show_df(df_dep_total)
     sel_dep_count = count_selected(df_loc_dep, "DEPARTMENT")
-    make_chart(df_loc_dep, "Department", type, "DEPARTMENT_NAME", df_dep_total, sel_dep_count)
+    make_chart(df_loc_dep, "Department", type, "DEPARTMENT_NAME", df_dep_total, sel_dep_count, drug_list)
     return count
 
 def download(df,type, loc_or_dep):
@@ -204,7 +226,7 @@ def grab_drug_one(df, ddd_or_dot, type, count):
         show_df(df_loc_total, "total")
         download(df_loc, type, " export")
         sel_count = count_selected(df_loc, "LOC")
-        make_chart(df_loc, "Location", ddd_or_dot, "LOC_NAME", df_loc_total, sel_count)
+        make_chart(df_loc, "Location", ddd_or_dot, "LOC_NAME", df_loc_total, sel_count, drug_selected)
     else:
         df_dep, dep_list, count= checkbox(df, drug_selected, "DEPARTMENT_NAME", count)
         df_dep = prepare_df(df_dep)
@@ -213,7 +235,7 @@ def grab_drug_one(df, ddd_or_dot, type, count):
         show_df(df_dep_total, "total")
         download(df_dep, type, " export")
         sel_count = count_selected(df_dep, "DEPARTMENT")
-        make_chart(df_dep, "Department", ddd_or_dot, "DEPARTMENT_NAME", df_dep_total, sel_count)
+        make_chart(df_dep, "Department", ddd_or_dot, "DEPARTMENT_NAME", df_dep_total, sel_count, drug_selected)
     return count
 
 def show_df(df, type="", loc_or_dep=""):
