@@ -47,9 +47,8 @@ def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total, count, drug_list):
     data["MONTH"] = data["MONTH_BEGIN_DT"].dt.strftime('%b %d %Y')
     df_total["MONTH"] = df_total["MONTH_BEGIN_DT"].dt.strftime('%b %d %Y')
     value_type = ddd_or_dot + " " + dep_or_loc + " Per 1000 Patients"
-    data["Legend (Antimicrobial - Unit)"] = data["GROUPER_NAME"] + " - " + data[type]
-    data = data.set_index("Legend (Antimicrobial - Unit)")
-    legend = data.index.unique().tolist()
+    data["Legend"] = data["GROUPER_NAME"] + " - " + data[type]
+    data = data.set_index("Legend")
     data = data.reset_index()
     base = alt.Chart(data).properties(height=800)
     brush = alt.selection(type='interval', encodings=['x'])
@@ -57,12 +56,31 @@ def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total, count, drug_list):
         field_name = "DEPARTMENT_NAME"
     else:
         field_name = "LOC_NAME"
+    
+    df_total["Weighted Average"]="Weighted Average"
+    total = (
+        alt.Chart(df_total).mark_line(color='red', opacity=1, strokeDash=[5,5],strokeWidth=5)
+        .encode(
+            x=alt.X("yearmonth(MONTH):T", title = "month"),
+            y=alt.Y(value_type + ":Q"),
+            color=alt.Color("Weighted Average:N",legend=alt.Legend(orient="top",title=""),
+                            scale=alt.Scale(range=["red"]))
+        )
+    )
     chart_circle = (
-        base.mark_line(opacity=0.4).mark_circle(size=70)
+        base.mark_circle(size=70)
         .encode(
             x=alt.X("yearmonth(MONTH):T", title = "month"),
             y=alt.Y(value_type + ":Q",stack=None, aggregate="sum", title = ddd_or_dot + " per 1000 patient days "),
-            color=alt.Color("Legend (Antimicrobial - Unit):N",legend=alt.Legend(titleLimit=800, labelLimit=600, direction="vertical", orient="top")),
+            color=alt.Color("Legend:N",legend=alt.Legend(titleLimit=800, labelLimit=600, direction="vertical", orient="top-right",
+                                                                                labelOpacity=0.7,
+                                                                                titleOpacity=1,
+                                                                                symbolOpacity=0.7,
+                                                                                title="Legend 'Antimicrobial - Unit'",
+                                                                                titleFontSize=13,
+                                                                                labelFontSize=11,
+                                                                                symbolSize=8),
+                                                                                scale=alt.Scale(scheme="tableau20")),
             tooltip=[alt.Tooltip(field="GROUPER_NAME"),alt.Tooltip(field=field_name),alt.Tooltip(field=value_type)]
         )
         .add_selection(
@@ -70,22 +88,13 @@ def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total, count, drug_list):
         )
         )
     chart_line = (
-        base.mark_line(opacity=0.4, strokeWidth=4)
+        base.mark_line(opacity=0.8, strokeWidth=4)
         .encode(
             x=alt.X("yearmonth(MONTH):T", title = "month"),
             y=alt.Y(value_type + ":Q",stack=None, aggregate="sum", title = ddd_or_dot + " per 1000 patient days "),
-            color=alt.Color("Legend (Antimicrobial - Unit):N")
-        )
+            color=alt.Color("Legend:N", legend=None))
         )
     chart = chart_circle + chart_line
-
-    total = (
-        alt.Chart(df_total).mark_line(color='red', opacity=1, strokeDash=[4,4])
-        .encode(
-            x=alt.X("yearmonth(MONTH):T", title = "month"),
-            y=alt.Y(value_type + ":Q"),
-        )
-    )
     #take out for now
     #rule = base.mark_rule(color='red', opacity=0.8, strokeDash=[1,1]).transform_window(
     #    cumulative= 'sum(' + value_type + ')',
@@ -94,9 +103,7 @@ def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total, count, drug_list):
     #    x=alt.X("month(MONTH_BEGIN_DT):T", title = "month"),
     #    )
     if len(drug_list) > 1 or count > 1:
-        chart = chart + total
-        st.markdown("<span style='color:red'>- - Weighted Total</span>",
-             unsafe_allow_html=True)
+        chart = alt.layer(chart, total).resolve_scale(color="independent")
     st.altair_chart(chart, use_container_width=True)
 
 
