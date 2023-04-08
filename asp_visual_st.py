@@ -82,7 +82,7 @@ def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total, count, drug_list, c
     chart_circle = (
         base.mark_circle(size=70)
         .encode(
-            x=alt.X("yearmonth(MONTH):T", title = "month"),
+            x=alt.X("yearmonth(MONTH):T", title = "month",axis=alt.Axis(tickCount="month")),
             y=alt.Y(value_type + ":Q",stack=None, aggregate="sum", title = ddd_or_dot + " per 1000 patient days "),
             color=alt.Color("Legend:N",legend=alt.Legend(titleLimit=800, labelLimit=600, direction="vertical", orient="top-right",
                                                                                 labelOpacity=0.7,
@@ -93,7 +93,7 @@ def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total, count, drug_list, c
                                                                                 labelFontSize=11,
                                                                                 symbolSize=8),
                                                                                 scale=alt.Scale(scheme="tableau20")),
-            tooltip=[alt.Tooltip(field='GROUPER_NAME'),alt.Tooltip(field=field_name),alt.Tooltip(field=value_type)]
+            tooltip=[alt.Tooltip(field='GROUPER_NAME'),alt.Tooltip(field=field_name),alt.Tooltip(field=value_type),alt.Tooltip(field="MONTH",type="temporal")]
         )
         .add_selection(
             brush
@@ -169,13 +169,9 @@ def grab_drug_both(df, df2, type, count, combine):
             container.error("Please select at least one grouper")
     #st.text(drug_selected)
     if combine == True:
-        df_temp = df2.set_index("GROUPER_NAME")
-        df_temp = df_temp.loc[drug_selected]
-        loc_all = df_temp["LOC_NAME"].unique().tolist()
-        drug_combined = prepare_loc(df_temp, drug_selected, loc_all)
+        drug_combined = prep_combine_total(df2, type, "Location", drug_selected)
         df_combined_total = get_total(drug_combined, "Location", type, combine)
-        sel_count = count_selected(df, "LOC")
-        make_chart(drug_combined, "Location", type, "LOC_NAME", df_combined_total, sel_count, drug_selected, combine)
+        make_chart(drug_combined, "Location", type, "LOC_NAME", df_combined_total, 0, drug_selected, combine)
     else:
         pass
     df_loc_for_dep, loc_list, count = checkbox(df, drug_selected, "LOC_NAME", count)
@@ -227,7 +223,7 @@ def get_total(df, dep_or_loc, ddd_or_dot, combined=False):
         finder = "LOC_NAME"
     else:
         finder = "DEPARTMENT_NAME"
-    if combined == True and dep_or_loc == "Location":
+    if combined == True:
         df = df.groupby(["MONTH_BEGIN_DT","GROUPER_NAME"], as_index=False)["Patient Days",value,ddd_or_dot_value].sum()
     else:
         df = df.groupby(["MONTH_BEGIN_DT","GROUPER_NAME",finder], as_index=False)["Patient Days",value,ddd_or_dot_value].sum()
@@ -265,13 +261,9 @@ def grab_drug_one(df, ddd_or_dot, type, count, combine=False):
             container.error("Please select at least one grouper")
     if "Location" in type:
         if combine == True:
-            df_used = df.reset_index()
-            df_used = df_used.set_index("GROUPER_NAME")
-            df_used = df_used.loc[drug_selected]
-            loc_all = df_used["LOC_NAME"].unique().tolist()
-            drug_combined = prepare_loc(df_used, drug_selected, loc_all)
+            drug_combined = prep_combine_total(df, ddd_or_dot, "Location", drug_selected)
             df_combined_total = get_total(drug_combined, "Location", ddd_or_dot, combine)
-            #show_df(df_combined_total)
+            #show_df(drug_combined)
             make_chart(drug_combined, "Location", ddd_or_dot, "LOC_NAME", df_combined_total, 0, drug_selected, combine)
         else:
             pass
@@ -285,27 +277,11 @@ def grab_drug_one(df, ddd_or_dot, type, count, combine=False):
         make_chart(df_loc, "Location", ddd_or_dot, "LOC_NAME", df_loc_total, sel_count, drug_selected)
     else:
         if combine == True:
-            df_combine_dep = df.reset_index()
-            df_combine_dep = df_combine_dep.set_index("GROUPER_NAME")
-            df_combine_dep = df_combine_dep.loc[drug_selected]
-            dep_all = df_combine_dep["DEPARTMENT_NAME"].unique().tolist()
-            drug_combined = prepare_loc(df_combine_dep, drug_selected, dep_all, "dep")
-            df_combine_dep = df_combine_dep.reset_index()
-            if ddd_or_dot == "DOT":
-                locator_value = "DOT_VALUE"
-                locator_per = "DOT Department Per 1000 Patients"
-                locator_loc = "DOT Location Per 1000 Patients"
-            else:
-                locator_value = "DDD_VALUE"
-                locator_per = "DDD Department Per 1000 Patients"
-                locator_loc = "DDD Location Per 1000 Patients"
-            df_combined = df_combine_dep.groupby(["MONTH_BEGIN_DT","GROUPER_NAME","LOC_NAME"], as_index=False)["Patient Days",locator_value,locator_per].sum()
-            df_combined[locator_loc] = df_combined[locator_value]/df_combined["Patient Days"]*1000
-            df_combined_total = get_total(df_combined, "Location", ddd_or_dot, combine)
+            df_combined = prep_combine_total(df, ddd_or_dot, "Department", drug_selected)
+            df_combined_total = get_total(df_combined, "Department", ddd_or_dot, combine)
             #show_df(df_combined)
             #show_df(df_combined_total)
-            sel_count = count_selected(drug_combined, "DEPARTMENT")
-            make_chart(df_combined, "Location", ddd_or_dot, "LOC_NAME", df_combined_total, 0, drug_selected, combine)
+            make_chart(df_combined, "Department", ddd_or_dot, "DEPARTMENT_NAME", df_combined_total, 0, drug_selected, combine)
         else:
             pass
         df_dep, dep_list, count= checkbox(df, drug_selected, "DEPARTMENT_NAME", count)
@@ -317,6 +293,38 @@ def grab_drug_one(df, ddd_or_dot, type, count, combine=False):
         sel_count = count_selected(df_dep, "DEPARTMENT")
         make_chart(df_dep, "Department", ddd_or_dot, "DEPARTMENT_NAME", df_dep_total, sel_count, drug_selected)
     return count
+
+def prep_combine_total(df, ddd_or_dot, loc_or_dep, drug_selected):
+    if ddd_or_dot == "DOT":
+        if loc_or_dep == "Department":
+            name = "DEPARTMENT_NAME"
+            prep_argu = "dep"
+            locator = "DOT Department Per 1000 Patients"
+        else:
+            name = "LOC_NAME"
+            prep_argu = "loc"
+            locator = "DOT Location Per 1000 Patients"
+        locator_value = "DOT_VALUE"
+    else:
+        if loc_or_dep == "Department":
+            name = "DEPARTMENT_NAME"
+            prep_argu = "dep"
+            locator = "DDD Department Per 1000 Patients"
+        else:
+            name = "LOC_NAME"
+            prep_argu = "loc"
+            locator = "DDD Location Per 1000 Patients"
+        locator_value = "DDD_VALUE"
+    df = df.reset_index()
+    df = df.set_index("GROUPER_NAME")
+    df = df.loc[drug_selected]
+    all_list = df[name].unique().tolist()
+    df = prepare_loc(df, drug_selected, all_list, prep_argu)
+    df = df.reset_index()
+    #show_df(df)
+    df = df.groupby(["MONTH_BEGIN_DT","GROUPER_NAME"], as_index=False)["Patient Days",locator_value,locator].sum()
+    df[locator] = df[locator_value]/df["Patient Days"]*1000
+    return df
 
 def show_df(df, type="", loc_or_dep=""):
     df = df.astype(str)
