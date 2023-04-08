@@ -73,18 +73,19 @@ def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total, count, drug_list, c
     total = (
         alt.Chart(df_total).mark_line(color='red', opacity=1, strokeDash=[5,5],strokeWidth=5)
         .encode(
-            x=alt.X("yearmonth(MONTH):T", title = "month"),
+            x=alt.X("yearmonth(MONTH):T"),
             y=alt.Y("average:Q"),
-            color=alt.Color("Weighted Average:N",legend=alt.Legend(orient="top",title=""),
+            color=alt.Color("Weighted Average:N",legend=alt.Legend(orient="top",title="Legend"),
                             scale=alt.Scale(range=["red"]))
         )
     )
+    
     chart_circle = (
         base.mark_circle(size=70)
         .encode(
             x=alt.X("yearmonth(MONTH):T", title = "month",axis=alt.Axis(tickCount="month")),
-            y=alt.Y(value_type + ":Q",stack=None, aggregate="sum", title = ddd_or_dot + " per 1000 patient days "),
-            color=alt.Color("Legend:N",legend=alt.Legend(titleLimit=800, labelLimit=600, direction="vertical", orient="top-right",
+            y=alt.Y(value_type + ":Q",stack=None, aggregate="sum", title = ddd_or_dot + " per 1000 patient days ",axis=alt.Axis(format="~s")),
+            color=alt.Color("Legend:N",legend=alt.Legend(titleLimit=600, labelLimit=400, direction="vertical", orient="top-right",
                                                                                 labelOpacity=0.7,
                                                                                 titleOpacity=1,
                                                                                 symbolOpacity=0.7,
@@ -99,20 +100,20 @@ def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total, count, drug_list, c
             brush
         )
         )
-    
 
     chart_line = (
         base.mark_line(opacity=0.8, strokeWidth=4)
         .encode(
             x=alt.X("yearmonth(MONTH):T", title = "month"),
-            y=alt.Y(value_type + ":Q",stack=None, aggregate="sum", title = ddd_or_dot + " per 1000 patient days "),
+            y=alt.Y(value_type + ":Q",stack=None, aggregate="sum"),
             color=alt.Color("Legend:N", legend=None))
         )
     chart = chart_circle + chart_line
     if len(drug_list) > 1 or count > 1:
-        chart = alt.layer(chart, total).resolve_scale(color="independent")
+        chart = alt.layer(chart, total, data=data).resolve_scale(color="independent")
     else:
         pass
+    chart.configure_axis(title="title")
     st.altair_chart(chart, use_container_width=True)
 
 
