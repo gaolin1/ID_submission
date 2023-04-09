@@ -8,6 +8,7 @@ import streamlit as st
 import altair as alt
 import numpy as np
 from io import BytesIO
+import plotly.graph_objects as go
 
 def main():
     st.set_page_config(layout="wide")
@@ -46,6 +47,95 @@ def prepare_loc(df, drug_list, loc_list, loc_or_dep="loc"):
     df_drug_loc = df_drug_loc.loc[loc_list]
     return df_drug_loc
 
+def make_go_chart(data, total_data, dep_or_loc, ddd_or_dot, combine=False):
+    value_type = ddd_or_dot + " " + dep_or_loc + " Per 1000 Patients"
+    if dep_or_loc == "Location":
+        type="LOC_NAME"
+    else:
+        type="DEPARTMENT_NAME"
+    data = data.reset_index()
+    if combine == True:
+        data["Legend"] = data["GROUPER_NAME"] + " - HHS"
+        data["Combined"] = "Combined"
+        data = data.groupby(["MONTH_BEGIN_DT", "Legend","GROUPER_NAME","Combined"], as_index=False)[value_type].sum()
+    else:
+        data["Legend"] = data["GROUPER_NAME"] + " - " + data[type]
+    data["Legend"] = data["Legend"].str.lstrip()
+    drug_list = data["Legend"].unique().tolist()
+    data = data.set_index("MONTH_BEGIN_DT")
+    data = data.sort_index()
+    data = data.reset_index()
+    figure = go.Figure()
+    for item in drug_list:
+        title = go.Scatter(
+                x=data[data["Legend"]==item]["MONTH_BEGIN_DT"],
+                y=data[data["Legend"]==item][value_type],
+                name=item,
+                hovertemplate="%{y:.1f}",
+                mode="lines"   
+        )
+        figure = figure.add_trace(title)
+    total = go.Scatter(
+            x=total_data["MONTH_BEGIN_DT"],
+            y=total_data["average"],
+            mode="lines",
+            line={"dash":"dash"},
+            name="Weighted Average",
+            hovertemplate="%{y:.1f}" 
+
+    )
+    if len(drug_list) > 1:
+        figure = figure.add_trace(total)
+    figure = figure.update_layout(
+       #hovertemplate="x: %{y:.1f}",
+       height=600,
+       hovermode="x unified",
+       xaxis=dict(
+            rangeselector=dict(
+                buttons=list([
+                        dict(
+                            count=max_lookback(data, 4),
+                            label="4m",
+                            step="month",
+                            stepmode="backward"
+                        ),
+                        dict(
+                            count=max_lookback(data, 6),
+                            label="6m",
+                            step="month",
+                            stepmode="backward"
+                        ),
+                        dict(
+                            count=max_lookback(data, 12),
+                            label="1y",
+                            step="month",
+                            stepmode="backward"
+                        ),
+                        dict(
+                            step="all"
+                        )
+                ])
+            ),
+            rangeslider=dict(
+                    visible=True,
+                    ),
+            type="date",
+       )
+    )
+    figure = figure.update_xaxes(
+        dtick="M1"
+    )
+    st.plotly_chart(figure, use_container_width=True)
+
+#helper function to prevent a plotly bug that rangerselector can result in empty dates
+def max_lookback(data,step):
+    max = (data["MONTH_BEGIN_DT"].max() - data["MONTH_BEGIN_DT"].min())/np.timedelta64(1, "M")
+    if step > max:
+        return max-1
+    else:
+        return step
+
+#deprecated, no longer using altair charts, see make_go_chart
 def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total, count, drug_list, combine=False):
     data = data.reset_index()
     #to correct for "one-off" error in time axis
@@ -60,8 +150,7 @@ def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total, count, drug_list, c
         data["Legend"] = data["GROUPER_NAME"] + " - " + data[type]
     data = data.set_index("Legend")
     data = data.reset_index()
-    base = alt.Chart(data).properties(height=800)
-    brush = alt.selection(type='interval', encodings=['x'])
+    base = alt.Chart(data)
     #show_df(data)
     if dep_or_loc == "Department":
         field_name = "DEPARTMENT_NAME"
@@ -79,7 +168,7 @@ def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total, count, drug_list, c
                             scale=alt.Scale(range=["red"]))
         )
     )
-    
+
     chart_circle = (
         base.mark_circle(size=70)
         .encode(
@@ -96,11 +185,7 @@ def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total, count, drug_list, c
                                                                                 scale=alt.Scale(scheme="tableau20")),
             tooltip=[alt.Tooltip(field='GROUPER_NAME'),alt.Tooltip(field=field_name),alt.Tooltip(field=value_type),alt.Tooltip(field="MONTH",type="temporal")]
         )
-        .add_selection(
-            brush
         )
-        )
-
     chart_line = (
         base.mark_line(opacity=0.8, strokeWidth=4)
         .encode(
@@ -108,14 +193,15 @@ def make_chart(data, dep_or_loc, ddd_or_dot, type, df_total, count, drug_list, c
             y=alt.Y(value_type + ":Q",stack=None, aggregate="sum"),
             color=alt.Color("Legend:N", legend=None))
         )
-    chart = chart_circle + chart_line
+    chart_complete = chart_circle + chart_line
     if len(drug_list) > 1 or count > 1:
-        chart = alt.layer(chart, total, data=data).resolve_scale(color="independent")
+        chart_complete = alt.layer(chart_complete, total, data=data).resolve_scale(color="independent")
     else:
         pass
-    chart.configure_axis(title="title")
-    st.altair_chart(chart, use_container_width=True)
-
+    chart_complete = chart_complete.properties(
+        height=700
+    )
+    st.altair_chart(chart_complete.interactive(), use_container_width=True)
 
 def count_selected(data, type=""):
     data = data.reset_index()
@@ -172,7 +258,8 @@ def grab_drug_both(df, df2, type, count, combine):
     if combine == True:
         drug_combined = prep_combine_total(df2, type, "Location", drug_selected)
         df_combined_total = get_total(drug_combined, "Location", type, combine)
-        make_chart(drug_combined, "Location", type, "LOC_NAME", df_combined_total, 0, drug_selected, combine)
+        make_go_chart(drug_combined, df_combined_total, "Location", type, combine)
+        #make_chart(drug_combined, "Location", type, "LOC_NAME", df_combined_total, 0, drug_selected, combine)
     else:
         pass
     df_loc_for_dep, loc_list, count = checkbox(df, drug_selected, "LOC_NAME", count)
@@ -182,8 +269,9 @@ def grab_drug_both(df, df2, type, count, combine):
     show_df(df_loc)
     show_df(df_loc_total, "total", "loc")
     download(df_loc,type, " per location export")
-    sel_count = count_selected(df_loc, "LOC")
-    make_chart(df_loc, "Location", type, "LOC_NAME", df_loc_total, sel_count, drug_list)
+    #sel_count = count_selected(df_loc, "LOC")
+    make_go_chart(df_loc, df_loc_total, "Location", type)
+    #make_chart(df_loc, "Location", type, "LOC_NAME", df_loc_total, sel_count, drug_list)
     df_loc_dep, dep_list, count = checkbox(df_loc_for_dep, drug_selected, "DEPARTMENT_NAME", count)
     df_dep_total = get_total(df_loc_dep, "Department", type)
     show_df(df_loc_dep)
@@ -191,8 +279,9 @@ def grab_drug_both(df, df2, type, count, combine):
     download(df_loc_dep, type, " per department export")
     #show_df(df_loc_total)
     #show_df(df_dep_total)
-    sel_dep_count = count_selected(df_loc_dep, "DEPARTMENT")
-    make_chart(df_loc_dep, "Department", type, "DEPARTMENT_NAME", df_dep_total, sel_dep_count, drug_list)
+    #sel_dep_count = count_selected(df_loc_dep, "DEPARTMENT")
+    make_go_chart(df_loc_dep, df_dep_total, "Department", type)
+    #make_chart(df_loc_dep, "Department", type, "DEPARTMENT_NAME", df_dep_total, sel_dep_count, drug_list)
     return count
 
 def download(df,type, loc_or_dep):
@@ -228,11 +317,19 @@ def get_total(df, dep_or_loc, ddd_or_dot, combined=False):
         df = df.groupby(["MONTH_BEGIN_DT","GROUPER_NAME"], as_index=False)["Patient Days",value,ddd_or_dot_value].sum()
     else:
         df = df.groupby(["MONTH_BEGIN_DT","GROUPER_NAME",finder], as_index=False)["Patient Days",value,ddd_or_dot_value].sum()
+    #if combined is selected, the data is combined per drug regardless of hospital or department, otherwise depending on selection,
+    #monthly total per drug per hospital/department are calculated
     df_total_days = df.groupby(["MONTH_BEGIN_DT"], as_index=False)["Patient Days"].sum()
+    #then total monthly patient days are calculated
     df = df.merge(df_total_days, left_on="MONTH_BEGIN_DT", right_on="MONTH_BEGIN_DT")
+    #show_df(df)
+    #patient days y = total monthly patient days, patient days x = original patient days
     df["weight"] = df["Patient Days_x"]/df["Patient Days_y"]
+    #show_df(df)
     df["average"] = df[value]*df["weight"]
+    #show_df(df)
     df = df.groupby("MONTH_BEGIN_DT", as_index=False)["average"].sum().round(2)
+    #show_df(df)
     #show_df(df)
     return df
 
@@ -265,7 +362,8 @@ def grab_drug_one(df, ddd_or_dot, type, count, combine=False):
             drug_combined = prep_combine_total(df, ddd_or_dot, "Location", drug_selected)
             df_combined_total = get_total(drug_combined, "Location", ddd_or_dot, combine)
             #show_df(drug_combined)
-            make_chart(drug_combined, "Location", ddd_or_dot, "LOC_NAME", df_combined_total, 0, drug_selected, combine)
+            make_go_chart(drug_combined,df_combined_total,"Location", ddd_or_dot,combine)
+            #make_chart(drug_combined, "Location", ddd_or_dot, "LOC_NAME", df_combined_total, 0, drug_selected, combine)
         else:
             pass
         df_loc, loc_list, count = checkbox(df, drug_selected, "LOC_NAME", count)
@@ -274,15 +372,17 @@ def grab_drug_one(df, ddd_or_dot, type, count, combine=False):
         show_df(df_loc)
         show_df(df_loc_total, "total")
         download(df_loc, type, " export")
-        sel_count = count_selected(df_loc, "LOC")
-        make_chart(df_loc, "Location", ddd_or_dot, "LOC_NAME", df_loc_total, sel_count, drug_selected)
+        #sel_count = count_selected(df_loc, "LOC")
+        make_go_chart(df_loc, df_loc_total, "Location", ddd_or_dot)
+        #make_chart(df_loc, "Location", ddd_or_dot, "LOC_NAME", df_loc_total, sel_count, drug_selected)
     else:
         if combine == True:
             df_combined = prep_combine_total(df, ddd_or_dot, "Department", drug_selected)
             df_combined_total = get_total(df_combined, "Department", ddd_or_dot, combine)
             #show_df(df_combined)
             #show_df(df_combined_total)
-            make_chart(df_combined, "Department", ddd_or_dot, "DEPARTMENT_NAME", df_combined_total, 0, drug_selected, combine)
+            make_go_chart(df_combined,df_combined_total,"Department", ddd_or_dot,combine)
+            #make_chart(df_combined, "Department", ddd_or_dot, "DEPARTMENT_NAME", df_combined_total, 0, drug_selected, combine)
         else:
             pass
         df_dep, dep_list, count= checkbox(df, drug_selected, "DEPARTMENT_NAME", count)
@@ -291,8 +391,9 @@ def grab_drug_one(df, ddd_or_dot, type, count, combine=False):
         show_df(df_dep)
         show_df(df_dep_total, "total")
         download(df_dep, type, " export")
-        sel_count = count_selected(df_dep, "DEPARTMENT")
-        make_chart(df_dep, "Department", ddd_or_dot, "DEPARTMENT_NAME", df_dep_total, sel_count, drug_selected)
+        #sel_count = count_selected(df_dep, "DEPARTMENT")
+        make_go_chart(df_dep, df_dep_total, "Department", ddd_or_dot)
+        #make_chart(df_dep, "Department", ddd_or_dot, "DEPARTMENT_NAME", df_dep_total, sel_count, drug_selected)
     return count
 
 def prep_combine_total(df, ddd_or_dot, loc_or_dep, drug_selected):
