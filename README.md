@@ -1,10 +1,9 @@
-### **SETUP (REQUIRED ONLY FOR FIRST TIME/SIGNIFICANT UPDATE)**
+### **Setup (ONLY REQUIRED FOR FIRST TIME/SIGNIFICANT UPDATE)**
 1. Install python 3. (tested on versions 3.9, 3.10 and 3.11 on mac/windows)
 2. To download the latest version of this script, select the release on the right sidebar and download the latest release.
 3. Extract the folder to a convenient location.
 4. ***Recommended***: to install all required packages, witin the extracted folder, right click on `setup.py` and select "launch with python launcher".
-
-
+---
 - Alternatively, required packages can also be installed inidivudally:
 1. [pandas](https://pandas.pydata.org/docs/getting_started/install.html) (install command: `pip install pandas`)
 2. [msoffcypto](https://github.com/nolze/msoffcrypto-tool) (install command: `pip install msoffcrypto-tool`)
