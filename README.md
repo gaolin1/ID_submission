@@ -3,6 +3,8 @@
 2. To download the latest version of this script, select the release on the right sidebar and download the latest release.
 3. Extract the folder to a convenient location.
 4. ***Recommended***: to install all required packages, witin the extracted folder, right click on `setup.py` and select "launch with python launcher".
+
+
 - Alternatively, required packages can also be installed inidivudally:
 1. [pandas](https://pandas.pydata.org/docs/getting_started/install.html) (install command: `pip install pandas`)
 2. [msoffcypto](https://github.com/nolze/msoffcrypto-tool) (install command: `pip install msoffcrypto-tool`)
@@ -29,7 +31,7 @@
 ---
 
 * Launch dashboard visualization app
-> <img width="547" alt="image" src="https://user-images.githubusercontent.com/28236780/189789926-a728ce53-704a-4bde-8f3d-d4398407fcbc.png">
+> <img width="433" alt="image" src="https://user-images.githubusercontent.com/28236780/232595134-992c707a-de36-4c60-a974-fdbe8a8a453c.png">
   * To launch visualization page, select `Launch Analytics Dashboard`.
   * <img width="325" alt="image" src="https://user-images.githubusercontent.com/28236780/230796824-67de34cf-e593-4fbc-afa9-2975fc5894c9.png">
   * Click **Browse file** to open file explorer and choose the output processed file.
