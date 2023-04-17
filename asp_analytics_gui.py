@@ -37,12 +37,13 @@ def main():
         df["GROUPER_NAME"] = df["GROUPER_NAME"].str.replace("HHS", "")
         df["GROUPER_NAME"] = df["GROUPER_NAME"].str.replace("GENERAL", "")
         df["GROUPER_NAME"] = df["GROUPER_NAME"].str.replace("ERX", "")
-        return df
-
-    def export_one_df(df, type, write_path):
-        write = pd.ExcelWriter(write_path, engine='xlsxwriter')
-        df.to_excel(write, type, index=False)
-        write.save()
+        if main_type == "DOT":
+            value = "DOT_VALUE"
+        else:
+            value = "DDD_VALUE"
+        df_loc = df.groupby(["MONTH_BEGIN_DT", "GROUPER_NAME", "SERVICE_AREA", "LOC_NAME"], as_index=False)[value, "Patient Days"].sum()
+        df_loc[main_type + " Location Per 1000 Patients"] = df_loc[value]/df_loc["Patient Days"]*1000
+        return df, df_loc
 
     def export_two_df(df1, type1, df2, type2, write_path):
         write = pd.ExcelWriter(write_path, engine='xlsxwriter')
@@ -63,7 +64,7 @@ def main():
             [sg.Text("Choose Report Type", background_color="black")],
             [[sg.Radio(text, "TYPE", enable_events=True, key=f"TYPE {i}", background_color="black")] for i, text in enumerate(report_choices)],
             [sg.Text("Choose one of the following to process Epic output file", background_color="black")],
-            [sg.Button("Location"), sg.Button("Department"), sg.Button("Both")],
+            [sg.Button("Process Epic Export File")],
             [sg.Text("   " ,background_color="black")],
             [sg.Button("Launch Analytics Dashboard")],
             [sg.Text("   " ,background_color="black")],
@@ -88,29 +89,7 @@ def main():
             [sg.Button("Export"), sg.Exit()]
         ]
         window = sg.Window("Process " + report_type + " " + level_type + " Epic Output File", layout=layout, finalize=True)
-        return window
-
-    def double_process_window(report_type):
-        layout = [
-            [sg.Text("Choose Location output file", background_color="black")],
-            [sg.InputText(key="-LOC_FILE_PATH-"),
-            sg.FileBrowse(initial_folder="./", file_types=(["Excel files", "*.xlsx"],))],
-            [sg.Text("Enter file password below", background_color="black")],
-            [sg.InputText(key="-LOC_PWD-", password_char="*")],
-            [sg.Text("Choose Department output file", background_color="black")],
-            [sg.InputText(key="-DEP_FILE_PATH-"),
-            sg.FileBrowse(initial_folder="./", file_types=(["Excel files", "*.xlsx"],))],
-            [sg.Text("Enter file password below", background_color="black")],
-            [sg.InputText(key="-DEP_PWD-", password_char="*")],
-            [sg.Button("Import and process (both)")],
-            [sg.Text("   " ,background_color="black")],
-            [sg.Text("Save Processed File", background_color="black")],
-            [sg.InputText(key="-SAVE_PATH-", enable_events=True),
-            sg.FileSaveAs(initial_folder="./", file_types=(("Excel files", "*.xlsx"),), default_extension="*.xlsx")],
-            [sg.Button("Export (both)"), sg.Exit()]
-        ]
-        window = sg.Window("Process " + report_type + " location and department Epic Output File", layout=layout, finalize=True)
-        return window        
+        return window     
 
     window1, window2 = main_window(), None
 
@@ -122,34 +101,21 @@ def main():
                 window2 = None
             elif window == window1:     # if closing win 1, exit program
                 break
-        if event in ("Location", "Department") and not window2:
+        if event == "Process Epic Export File" and not window2:
             level_type = event
             report_type = get_selected_var(window, report_choices, "TYPE 0", 3)
             window2 = single_process_window(report_type, level_type)
         if event == "Import and process":
             df = import_df(values["-SINGLE_FILE_PATH-"], values["-SINGLE_PWD-"])
-            df = import_processed(df, report_type, level_type)
+            df_dep, df_loc = import_processed(df, report_type, "Department")
             sg.popup("Import and processing successful", background_color="black")
         if event == "Export":
-            combined_type = report_type + " per " + level_type
-            write_path = values["-SAVE_PATH-"]
-            export_one_df(df, combined_type, write_path)
-            sg.popup("File save sucessful, saved under " + write_path, background_color="black")
-        if event == "Both" and not window2:
-            report_type = get_selected_var(window, report_choices, "TYPE 0", 3)
-            window2 = double_process_window(report_type)
-        if event == "Import and process (both)":
-            df_loc = import_df(values["-LOC_FILE_PATH-"], values["-LOC_PWD-"])
-            df_dep = import_df(values["-DEP_FILE_PATH-"], values["-DEP_PWD-"])
-            df_loc = import_processed(df_loc, report_type, "Location")
-            df_dep = import_processed(df_dep, report_type, "Department")
-            sg.popup("Import and processing successful", background_color="black")
-        if event == "Export (both)":
             combined_loc_type = report_type + " per Location"
             combined_dep_type = report_type + " per Department"
             write_path = values["-SAVE_PATH-"]
             export_two_df(df_loc, combined_loc_type, df_dep, combined_dep_type, write_path)
             sg.popup("File save sucessful, saved under " + write_path, background_color="black")
+            window2.close()
         if event == "Launch Analytics Dashboard":
             print("Press Control + C to terminate the program")
             sys.argv = ['streamlit', 'run', 'asp_visual_st.py']

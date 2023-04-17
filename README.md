@@ -1,7 +1,9 @@
-### **Requirements**
-- Recommended: to install all required packages, run `pip3 install -r requirements.txt`
-- Python 3 (tested on versions 3.9, 3.10 and 3.11 on mac/windows)
-- Required packages:
+### **SETUP (REQUIRED ONLY FOR FIRST TIME/SIGNIFICANT UPDATE)**
+1. Install python 3. (tested on versions 3.9, 3.10 and 3.11 on mac/windows)
+2. To download the latest version of this script, select the release on the right sidebar and download the latest release.
+3. Extract the folder to a convenient location.
+4. ***Recommended***: to install all required packages, witin the extracted folder, right click on `setup.py` and select "launch with python launcher".
+- Alternatively, required packages can also be installed inidivudally:
 1. [pandas](https://pandas.pydata.org/docs/getting_started/install.html) (install command: `pip install pandas`)
 2. [msoffcypto](https://github.com/nolze/msoffcrypto-tool) (install command: `pip install msoffcrypto-tool`)
 3. [streamlit](https://streamlit.io) (install command: `pip install streamlit`)
@@ -11,25 +13,16 @@
 ---
 
 - to run the script:
-1. select release on the right sidebar and download the latest release
-- then either:
-2. a) use right click on the asp_visual.py file and launch with **python launcher** 
-2. b) OR enter `python3 asp_visual.py` in terminal (mac) or cmd (windows)
+1. Right click on the `asp_analytics.gui.py` file and launch with **python launcher**  <br> OR enter `python3 asp_analytics_gui.py` in terminal (mac) or cmd (windows)
 ---
 
 ### This script has two main options
-> <img width="547" alt="image" src="https://user-images.githubusercontent.com/28236780/189789926-a728ce53-704a-4bde-8f3d-d4398407fcbc.png">
+> <img width="433" alt="image" src="https://user-images.githubusercontent.com/28236780/232595134-992c707a-de36-4c60-a974-fdbe8a8a453c.png">
 * Process Epic exported file
   * First select either the exported report are `DDD` or `DOT`.
-  * Depending on the exported report, select either to process `location`, `department` or `both` reports.
-> <img width="734" alt="image" src="https://user-images.githubusercontent.com/28236780/189790240-5fd82c26-8ccc-422d-875b-43fb6252e3ce.png">
-  * for `location` or `department`:
-    * select the Epic output file using `Browse`, enter the file password
-    * then click `Import and Process`
-    * once finished, click `Save As` to enter the desired output name and then click `Export`
-> <img width="734" alt="image" src="https://user-images.githubusercontent.com/28236780/189790626-b4aea7ee-2bd7-47dd-aaf6-a403d9e4a1e8.png">
-  * for `both`:
-    * follow the prompts to select both location and department files and corresponding passwords
+  * Then click on "Process Epic Export File"
+> <img width="578" alt="image" src="https://user-images.githubusercontent.com/28236780/232595517-9ad416b8-1f2f-426c-bd3e-882506ea21ca.png">
+  * To select the Epic output file using `Browse`, enter the file password
     * then click `Import and Process`
     * once finished, click `Save As` to enter the desired output name and then click `Export`
 
